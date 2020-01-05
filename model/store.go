@@ -81,10 +81,10 @@ func (s *Store) GetRequestsByUrl(url *Url) ([]Request, error) {
 	}
 	return requests, nil
 }
-func (s *Store) GetRequestsInPeriod(from, to time.Time) ([]Request, error) {
-	var requests []Request
-	if err := s.db.Where("created_at >= ? and created_at <= ?", from, to).Find(requests).Error; err != nil {
+func (s *Store) GetUserRequestsInPeriod(user *User, from, to time.Time) ([]Url, error) {
+	var urls []Url
+	if err := s.db.Model(user).Preload("Requests", "created_at >= ? and created_at <= ?", from, to).Related(&urls).Error; err != nil {
 		return nil, err
 	}
-	return requests, nil
+	return urls, nil
 }

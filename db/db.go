@@ -13,6 +13,7 @@ func Setup(databaseName string) *gorm.DB {
 	migrate(db)
 	// setup Database loading mode and connection pool and other settings as you prefer
 	//db.DB().SetMaxIdleConns(5)
+	db.LogMode(true)
 	return db
 }
 func newDB(name string) *gorm.DB {
@@ -24,8 +25,6 @@ func newDB(name string) *gorm.DB {
 		fmt.Println("Error in creating database file : ", err)
 		return nil
 	}
-	//Enable logging
-	db.LogMode(true)
 	return db
 }
 func migrate(db *gorm.DB) {
