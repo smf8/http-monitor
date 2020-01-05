@@ -11,6 +11,10 @@ type Url struct {
 	Requests    []Request `gorm:"foreignkey:url_id"`
 }
 
+func (url *Url) ShouldTriggerAlarm() bool {
+	return url.FailedTimes >= url.Threshold
+}
+
 type Request struct {
 	gorm.Model
 	UrlId  uint
