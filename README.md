@@ -16,13 +16,13 @@ Database ORM library: [gorm](https://github.com/jinzhu/gorm)
 | :------ | ---------- | ---------- | ---------- | ------------ | ------------ |
 | integer | datetime   | datetime   | datetime   | varchar(255) | varchar(255) |
 
-**URLs: **
+**URLs:**
 
 | id(pk)  | created_at | updated_at | deleted_at | user_id(fk) | address      | threshold | failed_times |
 | ------- | ---------- | ---------- | ---------- | ----------- | ------------ | --------- | :----------- |
 | integer | datetime   | datetime   | datetime   | integer     | varchar(255) | integer   | integer      |
 
-**Requests: **
+**Requests:**
 
 | id(pk)  | created_at | updated_at | deleted_at | url_id(fk) | result  |
 | ------- | ---------- | ---------- | ---------- | ---------- | ------- |
