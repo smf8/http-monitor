@@ -8,16 +8,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+	"time"
 )
 
 var database *gorm.DB
 var store *model.Store
+var usersList []*model.User
+var urlsList []*model.Url
 
 func TestMain(m *testing.M) {
 	//initializing database
 	database = Setup("test.db")
-	database.LogMode(false)
 	store = model.NewStore(database)
+
+	setup()
 
 	returnCode := m.Run()
 	// removing file and closing database after all tests are done
@@ -27,20 +31,29 @@ func TestMain(m *testing.M) {
 	if err := os.Remove("test.db"); err != nil {
 		log.Error(err)
 	}
+
 	os.Exit(returnCode)
+}
+
+func setup() {
+	usersList = make([]*model.User, 2)
+	usersList[0], _ = model.NewUser("TestUser", "TestPassword")
+	usersList[1], _ = model.NewUser("TestUser1", "TestPassword1")
+
+	urlsList = make([]*model.Url, 10)
+	for i := range urlsList {
+		urlsList[i] = new(model.Url)
+		urlsList[i].UserId = usersList[0].ID
+		urlsList[i].Address = fmt.Sprintf("www.foo%d.bar", i)
+		urlsList[i].Threshold = 10
+	}
 }
 
 //TestUsers tests user insertion / reading
 func TestUsers(t *testing.T) {
-	user1, err := model.NewUser("TestUser", "TestPassword")
-	assert.NoError(t, err, "error creating user instance")
-	err = store.AddUser(user1)
-	assert.NoError(t, nil, "error adding user to database")
-
-	user1.Username = "TestUser1"
-	user1.ID = 0
-	_ = store.AddUser(user1)
-
+	err := store.AddUser(usersList[0])
+	assert.NoError(t, err, "error adding user to database")
+	store.AddUser(usersList[1])
 	dbUser, err := store.GetUserByUserName("TestUser")
 	assert.NoError(t, err, "error reading user from database")
 	assert.Equal(t, dbUser.Username, "TestUser")
@@ -48,19 +61,15 @@ func TestUsers(t *testing.T) {
 	users, err := store.GetAllUsers()
 	assert.NoError(t, err, "error reading all users from database")
 	assert.Equal(t, 2, len(users))
+	// Changing usersList so that they have valid ID value from database
+	usersList[0], usersList[1] = &users[0], &users[1]
 }
 
 func TestUrls(t *testing.T) {
-	urls := make([]*model.Url, 7)
-	user, _ := store.GetAllUsers()
 	// Url insertion
-	for i := range urls {
-		urls[i] = new(model.Url)
-		urls[i].UserId = user[0].ID
-		urls[i].Address = fmt.Sprintf("www.foo%d.bar", i)
-		urls[i].Threshold = 10
-		err := store.AddURL(urls[i])
-
+	for i := range urlsList {
+		urlsList[i].UserId = usersList[0].ID
+		err := store.AddURL(urlsList[i])
 		assert.NoError(t, err, "Error inserting url into database")
 	}
 	// Url reading
@@ -86,19 +95,20 @@ func TestUrls(t *testing.T) {
 }
 
 func TestRequests(t *testing.T) {
-	user, _ := store.GetAllUsers()
-	urls, _ := store.GetURLsByUser(&user[0])
-
 	// test url insertion
-	for i := range urls {
+	for i := range urlsList {
 		req := new(model.Request)
 		req.Result = 300
-		req.UrlId = urls[i/3].ID
+		req.UrlId = urlsList[i/3].ID
 		err := store.AddRequest(req)
 		assert.NoError(t, err)
 	}
 	// test request retrieval
-	reqs, err := store.GetRequestsByUrl(&urls[0])
+	reqs, err := store.GetRequestsByUrl(urlsList[0])
 	assert.NoError(t, err, "Error retrieving requests from database")
 	assert.Equal(t, 3, len(reqs), "Mismatch between number of inserted and retrieved requests")
+
+	urlsByTime, err := store.GetUserRequestsInPeriod(usersList[0], time.Now().Add(-time.Minute*3), time.Now())
+
+	assert.Equal(t, len(urlsByTime), 10, "error getting urls filtered by time")
 }
