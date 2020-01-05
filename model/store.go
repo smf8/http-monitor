@@ -59,9 +59,9 @@ func (s *Store) UpdateUrl(url *Url) error {
 }
 
 //DismissAlert sets "FailedTimes" value to 0 and updates it's record in database
+// https://github.com/jinzhu/gorm/issues/202#issuecomment-52582525
 func (s *Store) DismissAlert(url *Url) error {
-	url.FailedTimes = 0
-	return s.UpdateUrl(url)
+	return s.db.Model(url).Update("failed_times", 0).Error
 }
 
 func (s *Store) IncrementFailed(url *Url) error {
