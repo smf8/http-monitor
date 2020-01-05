@@ -1,7 +1,8 @@
 package main
 
-import "fmt"
+import "github.com/smf8/http-monitor/db"
 
 func main() {
-	fmt.Println("Hello World !!")
+	db.Setup("http-monitor.db")
+
 }
