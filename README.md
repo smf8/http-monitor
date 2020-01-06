@@ -28,3 +28,19 @@ Database ORM library: [gorm](https://github.com/jinzhu/gorm)
 | ------- | ---------- | ---------- | ---------- | ---------- | ------- |
 | integer | datetime   | datetime   | datetime   | integer    | integer |
 
+### Structure:
+
+```
+├── db 					// database layer
+│   ├── db.go
+│   └── db_test.go
+├── model 				// models
+│   ├── model_test.go
+│   ├── url.go
+│   └── user.go
+└── store				// layer for models and database interaction
+│   └── store.go
+├── go.mod
+├── go.sum
+├── main.go				//main entry of application
+```
