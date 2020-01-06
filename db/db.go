@@ -28,5 +28,5 @@ func newDB(name string) *gorm.DB {
 	return db
 }
 func migrate(db *gorm.DB) {
-	db.AutoMigrate(&model.User{}, &model.Request{}, &model.Url{})
+	db.AutoMigrate(&model.User{}, &model.Request{}, &model.URL{})
 }

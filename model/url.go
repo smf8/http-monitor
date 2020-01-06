@@ -2,7 +2,7 @@ package model
 
 import "github.com/jinzhu/gorm"
 
-type Url struct {
+type URL struct {
 	gorm.Model
 	UserId      uint
 	Address     string
@@ -11,7 +11,7 @@ type Url struct {
 	Requests    []Request `gorm:"foreignkey:url_id"`
 }
 
-func (url *Url) ShouldTriggerAlarm() bool {
+func (url *URL) ShouldTriggerAlarm() bool {
 	return url.FailedTimes >= url.Threshold
 }
 
