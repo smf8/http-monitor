@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// Setup initializes database and returns DB instance
 func Setup(databaseName string) *gorm.DB {
 	db := newDB(databaseName)
 	migrate(db)
@@ -16,6 +17,7 @@ func Setup(databaseName string) *gorm.DB {
 	db.LogMode(true)
 	return db
 }
+
 func newDB(name string) *gorm.DB {
 	if !strings.HasSuffix(name, ".db") {
 		name = name + ".db"
