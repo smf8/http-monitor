@@ -1,11 +1,11 @@
-package db
+package store
 
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/gommon/log"
+	"github.com/smf8/http-monitor/db"
 	"github.com/smf8/http-monitor/model"
-	"github.com/smf8/http-monitor/store"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -13,14 +13,14 @@ import (
 )
 
 var database *gorm.DB
-var st *store.Store
+var st *Store
 var usersList []*model.User
 var urlsList []*model.URL
 
 func TestMain(m *testing.M) {
 	//initializing database
-	database = Setup("test.db")
-	st = store.NewStore(database)
+	database = db.Setup("test.db")
+	st = NewStore(database)
 
 	setup()
 
@@ -58,7 +58,8 @@ func TestUsers(t *testing.T) {
 	dbUser, err := st.GetUserByUserName("TestUser")
 	assert.NoError(t, err, "error reading user from database")
 	assert.Equal(t, dbUser.Username, "TestUser")
-
+	_, err = st.GetUserByUserName("invalid-username")
+	assert.Error(t, err)
 	users, err := st.GetAllUsers()
 	assert.NoError(t, err, "error reading all users from database")
 	assert.Equal(t, 2, len(users))
@@ -79,7 +80,12 @@ func TestUrls(t *testing.T) {
 
 	assert.Equal(t, u.Address, "www.foo0.bar", "Mismatch url in database")
 
+	_, err = st.GetURLById(1000)
+	assert.Error(t, err)
 	// Updating URL
+
+	_, err = st.GetURLsByUser(usersList[0])
+	assert.NoError(t, err)
 
 	err = st.IncrementFailed(u)
 	err = st.IncrementFailed(u)
