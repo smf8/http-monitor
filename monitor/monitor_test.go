@@ -49,8 +49,8 @@ func TestMonitor_Do(t *testing.T) {
 	tearDown()
 	setupDB()
 	urls := []model.URL{
-		{UserId: 1, Address: "http://127.0.0.1", Threshold: 10, FailedTimes: 0},
-		{UserId: 2, Address: "http://127.0.0.1", Threshold: 10, FailedTimes: 0},
+		{UserId: 1, Address: "http://google.com", Threshold: 10, FailedTimes: 0},
+		{UserId: 2, Address: "http://google.com", Threshold: 10, FailedTimes: 0},
 	}
 	st.AddURL(&urls[0])
 	st.AddURL(&urls[1])
@@ -86,8 +86,8 @@ func TestMonitor_Cancel(t *testing.T) {
 
 func TestMonitor_RemoveURL(t *testing.T) {
 	urls := []model.URL{
-		{UserId: 1, Address: "http://127.0.0.1", Threshold: 10, FailedTimes: 0},
-		{UserId: 2, Address: "http://127.0.0.1", Threshold: 10, FailedTimes: 0},
+		{UserId: 1, Address: "http://google.com", Threshold: 10, FailedTimes: 0},
+		{UserId: 2, Address: "http://google.com", Threshold: 10, FailedTimes: 0},
 	}
 	urls[0].ID = 1
 	urls[1].ID = 2

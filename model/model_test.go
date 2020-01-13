@@ -38,7 +38,7 @@ func TestURLSendRequest(t *testing.T) {
 	url, _ := NewURL(0, "127.0.0.1:9999", 5)
 	_, err := url.SendRequest()
 	assert.Error(t, err)
-	url.Address = "http://127.0.0.1"
+	url.Address = "http://google.com"
 	req, err := url.SendRequest()
 	assert.NoError(t, err)
 	assert.Equal(t, req.Result/100, 2)
