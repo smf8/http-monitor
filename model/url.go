@@ -2,9 +2,9 @@ package model
 
 import (
 	"errors"
+	"github.com/asaskevich/govalidator"
 	"github.com/jinzhu/gorm"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
@@ -30,14 +30,11 @@ func NewURL(userID uint, address string, threshold int) (*URL, error) {
 	url.Threshold = threshold
 	url.FailedTimes = 0
 
-	reg, err := regexp.Compile(`^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$`)
-	if err != nil {
-		return nil, err
-	}
+	isValid := govalidator.IsURL(address)
 	if !strings.HasPrefix("http://", address) {
 		address = "http://" + address
 	}
-	if reg.MatchString(address) {
+	if isValid {
 		//valid URL address
 		url.Address = address
 		return url, nil
