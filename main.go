@@ -35,8 +35,5 @@ func main() {
 		}()
 	}
 	mnt.AddURL(urls)
-	err = mnt.Do()
-	if err != nil {
-		panic(err)
-	}
+	mnt.Do()
 }
