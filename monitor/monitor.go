@@ -7,6 +7,7 @@ import (
 	"github.com/smf8/http-monitor/model"
 	"github.com/smf8/http-monitor/store"
 	"net/http"
+	"sync"
 )
 
 type Monitor struct {
@@ -65,56 +66,50 @@ func (mnt *Monitor) Cancel() error {
 }
 
 // DoURL checks a single URL's response and saves it's request into database
-func (mnt *Monitor) DoURL(url model.URL) error {
-	var err error
+func (mnt *Monitor) DoURL(url model.URL) {
+	var wg sync.WaitGroup
+	wg.Add(1)
 	mnt.wp.Submit(func() {
-		req, err := url.SendRequest()
-		if err != nil {
-			fmt.Println(err, "could not make request")
-			req.Result = http.StatusBadRequest
-		}
-		// add request to database
-		if err = mnt.store.AddRequest(req); err != nil {
-			fmt.Println(err, "could not save request to database")
-		}
-		// status code was other than 2XX
-		if req.Result/100 != 2 {
-			if err = mnt.store.IncrementFailed(&url); err != nil {
-				fmt.Println(err, "could not increment failed times for url")
-			}
-		}
+		defer wg.Done()
+		mnt.monitorURL(url)
 	})
-	return err
+	wg.Wait()
 }
 
 // Do ranges over URLs currently inside Monitor instance
 // and save each one's request inside database
 // this function does not block
-func (mnt *Monitor) Do() error {
-	var err error
+func (mnt *Monitor) Do() {
+	var wg sync.WaitGroup
+
 	for urlIndex := range mnt.URLs {
 		url := mnt.URLs[urlIndex]
+		wg.Add(1)
 		mnt.wp.Submit(func() {
-			// sending request
-			req, err := url.SendRequest()
-			if err != nil {
-				fmt.Println(err, "could not make request")
-				req = new(model.Request)
-				req.UrlId = url.ID
-				req.Result = http.StatusBadRequest
-			}
-			// add request to database
-			if err = mnt.store.AddRequest(req); err != nil {
-				fmt.Println(err, "could not save request to database")
-			}
-			// status code was other than 2XX
-			if req.Result/100 != 2 {
-				if err = mnt.store.IncrementFailed(&url); err != nil {
-					fmt.Println(err, "could not increment failed times for url")
-				}
-			}
+			defer wg.Done()
+			mnt.monitorURL(url)
 		})
 	}
-	mnt.wp.StopWait()
-	return err
+	wg.Wait()
+}
+
+func (mnt *Monitor) monitorURL(url model.URL) {
+	// sending request
+	req, err := url.SendRequest()
+	if err != nil {
+		fmt.Println(err, "could not make request")
+		req = new(model.Request)
+		req.UrlId = url.ID
+		req.Result = http.StatusBadRequest
+	}
+	// add request to database
+	if err = mnt.store.AddRequest(req); err != nil {
+		fmt.Println(err, "could not save request to database")
+	}
+	// status code was other than 2XX
+	if req.Result/100 != 2 {
+		if err = mnt.store.IncrementFailed(&url); err != nil {
+			fmt.Println(err, "could not increment failed times for url")
+		}
+	}
 }
