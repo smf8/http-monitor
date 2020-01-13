@@ -11,24 +11,25 @@ import (
 )
 
 type Monitor struct {
-	store *store.Store
-	URLs  []model.URL
-	wp    *workerpool.WorkerPool
+	store      *store.Store
+	URLs       []model.URL
+	wp         *workerpool.WorkerPool
+	workerSize int
 }
 
 // NewMonitor creates a Monitor instance with 'store' and 'url'
 // it also creates a worker pool of size 'workerSize'
 // if 'urls' is set to nil it will be initialized with an empty slice
-func NewMonitor(store *store.Store, urls []model.URL) *Monitor {
+func NewMonitor(store *store.Store, urls []model.URL, workerSize int) *Monitor {
 	mnt := new(Monitor)
 	if urls == nil {
 		mnt.URLs = make([]model.URL, 0)
 	}
 	mnt.URLs = urls
 	mnt.store = store
-
+	mnt.workerSize = workerSize
 	// max number of workers
-	mnt.wp = workerpool.New(20)
+	mnt.wp = workerpool.New(workerSize)
 	return mnt
 }
 
@@ -57,6 +58,8 @@ func (mnt *Monitor) AddURL(urls []model.URL) {
 
 // Cancel stops all tasks of fetching urls
 // it will wait for current running jobs to finish
+// note that if you call this method, for reusing the monitor
+// you need to instantiate it again.
 func (mnt *Monitor) Cancel() error {
 	mnt.wp.Stop()
 	if !mnt.wp.Stopped() {

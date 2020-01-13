@@ -6,12 +6,13 @@ import (
 	"github.com/smf8/http-monitor/model"
 	"github.com/smf8/http-monitor/monitor"
 	"github.com/smf8/http-monitor/store"
+	"time"
 )
 
 func main() {
 	d := db.Setup("http-monitor.db")
 	st := store.NewStore(d)
-	mnt := monitor.NewMonitor(st, nil)
+	mnt := monitor.NewMonitor(st, nil, 10)
 	urls := make([]model.URL, 3)
 	mmd, err := model.NewUser("smf", "1234")
 	if err != nil {
@@ -21,19 +22,21 @@ func main() {
 		panic(err)
 	}
 	for i := range urls {
-		addr := fmt.Sprintf("google.com")
+		addr := fmt.Sprintf("127.0.0.1")
 		url, err := model.NewURL(mmd.ID, addr, 10)
 		if err != nil {
 			panic(err)
 		}
 		urls[i] = *url
-		go func() {
-			req, _ := url.SendRequest()
-			if req != nil {
-				fmt.Println(req.Result)
-			}
-		}()
+		//go func() {
+		//	req, _ := url.SendRequest()
+		//	if req != nil {
+		//		fmt.Println(req.Result)
+		//	}
+		//}()
 	}
 	mnt.AddURL(urls)
-	mnt.Do()
+	sch, _ := monitor.NewScheduler(mnt)
+	sch.DoWithIntervals(2 * time.Second)
+	select {}
 }

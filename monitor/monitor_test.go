@@ -32,7 +32,7 @@ func setupDB() {
 	user, _ := model.NewUser("foo", "bar")
 	_ = st.AddUser(user)
 
-	mnt = NewMonitor(st, nil)
+	mnt = NewMonitor(st, nil, 20)
 
 }
 
