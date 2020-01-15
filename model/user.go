@@ -29,12 +29,12 @@ func HashPassword(pass string) (string, error) {
 	if len(pass) == 0 {
 		return "", errors.New("password cannot be empty")
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	return string(hash), err
 }
 
 // ValidatePassword compares 'pass' with 'users' password
 // returns true if their equivalent
 func (user *User) ValidatePassword(pass string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pass)) != nil
+	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pass)) == nil
 }
