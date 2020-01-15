@@ -3,7 +3,6 @@ package common
 // got error handling idea from https://medium.com/ki-labs-engineering/rest-api-error-handling-in-go-behavioral-type-assertion-509d93636afd
 
 import (
-	"fmt"
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -35,14 +34,13 @@ func NewError() *Error {
 type RequestError struct {
 	Cause  error
 	Detail string
-	Type   string
 	Status int
 }
 
 // NewBindingError creates an error with given data. "bindingType" is the type that is being bound
 // provide short description for "detail" to display to user as error message
-func NewBindingError(detail, bindingType string, err error, statusCode int) *RequestError {
-	return &RequestError{err, detail, bindingType, statusCode}
+func NewRequestError(detail string, err error, statusCode int) *RequestError {
+	return &RequestError{err, detail, statusCode}
 }
 func (se *RequestError) Error() string {
 	if se.Cause == nil {
@@ -52,8 +50,7 @@ func (se *RequestError) Error() string {
 }
 func (se *RequestError) ErrorBody() Error {
 	body := NewError()
-	body.Body["type"] = fmt.Sprintf("Error parsing request of type %s", se.Type)
-	body.Body["detail"] = se.Detail
+	body.Body["body"] = se.Detail
 	return *body
 }
 
@@ -88,16 +85,26 @@ func (e *ValidationError) ErrorBody() Error {
 // CustomHTTPErrorHandler, here we define what to do with each types of errors
 func CustomHTTPErrorHandler(err error, c echo.Context) {
 	code := http.StatusInternalServerError
-	cErr := err.(ClientError)
-	switch e := cErr.(type) {
-	case *RequestError:
-		code = e.Status
-	case *ValidationError:
-		code = http.StatusBadRequest
+	switch err.(type) {
+	case ClientError:
+		ce := err.(ClientError)
+		e := c.JSON(code, ce.ErrorBody())
+		if e != nil {
+			c.Logger().Error(e)
+		}
+
+		c.Logger().Error(ce)
+		switch e := ce.(type) {
+		case *RequestError:
+			code = e.Status
+		case *ValidationError:
+			code = http.StatusBadRequest
+		}
+	case *echo.HTTPError:
+		e := c.JSON(err.(*echo.HTTPError).Code, err.(*echo.HTTPError).Message)
+		if e != nil {
+			c.Logger().Error(e)
+		}
+		c.Logger().Error(err)
 	}
-	e := c.JSON(code, cErr.ErrorBody())
-	if e != nil {
-		c.Logger().Error(e)
-	}
-	c.Logger().Error(cErr)
 }
