@@ -4,7 +4,6 @@ package middleware
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"strings"
 )
 
 type whiteList struct {
@@ -27,7 +26,7 @@ func AddToWhiteList(path string, method string) {
 
 func skipper(c echo.Context) bool {
 	for _, v := range authWhiteList {
-		if strings.Contains(c.Path(), v.path) && c.Request().Method == v.method {
+		if c.Path() == v.path && c.Request().Method == v.method {
 			return true
 		}
 	}
