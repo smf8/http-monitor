@@ -19,12 +19,7 @@ func (h *Handler) Login(c echo.Context) error {
 	if err != nil || !u.ValidatePassword(user.Password) {
 		return common.NewRequestError("Invalid username or password", err, http.StatusUnauthorized)
 	}
-	// TODO: generate and provide user with JWT
-	token, err := common.GenerateJWT(u.ID)
-	if err != nil {
-		return common.NewRequestError("Error generating JWT token", err, http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusOK, token)
+	return c.JSON(http.StatusOK, NewResponseData(NewUserResponse(u)))
 }
 
 // SignUp user handler to handle sign up requests
@@ -39,10 +34,6 @@ func (h *Handler) SignUp(c echo.Context) error {
 	if err := h.st.AddUser(user); err != nil {
 		return common.NewRequestError("could not save user in database", err, http.StatusInternalServerError)
 	}
-	// TODO: generate and provide user with JWT
-	token, err := common.GenerateJWT(user.ID)
-	if err != nil {
-		return common.NewRequestError("Error generating JWT token", err, http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusCreated, token)
+
+	return c.JSON(http.StatusCreated, NewResponseData(NewUserResponse(user)))
 }

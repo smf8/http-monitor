@@ -40,6 +40,9 @@ type RequestError struct {
 // NewBindingError creates an error with given data. "bindingType" is the type that is being bound
 // provide short description for "detail" to display to user as error message
 func NewRequestError(detail string, err error, statusCode int) *RequestError {
+	if e, ok := err.(*RequestError); ok {
+		return e
+	}
 	return &RequestError{err, detail, statusCode}
 }
 func (se *RequestError) Error() string {
