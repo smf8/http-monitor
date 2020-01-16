@@ -115,7 +115,7 @@ func TestRequests(t *testing.T) {
 	assert.NoError(t, err, "Error retrieving requests from database")
 	assert.Equal(t, 3, len(reqs), "Mismatch between number of inserted and retrieved requests")
 
-	urlsByTime, err := st.GetUserRequestsInPeriod(usersList[0].ID, time.Now().Add(-time.Minute*3), time.Now())
-
-	assert.Equal(t, 10, len(urlsByTime), "error getting urls filtered by time")
+	urlsByTime, err := st.GetUserRequestsInPeriod(urlsList[0].ID, time.Now().Add(-time.Minute*3), time.Now())
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(urlsByTime.Requests), "error getting urls filtered by time")
 }
