@@ -56,7 +56,7 @@ func TestMonitor_Do(t *testing.T) {
 	st.AddURL(&urls[1])
 	mnt.AddURL(urls)
 	mnt.Do()
-	req, _ := st.GetRequestsByUrl(&urls[0])
+	req, _ := st.GetRequestsByUrl(urls[0].ID)
 	assert.Len(t, req, 1)
 }
 func TestMonitor_DoURL(t *testing.T) {
@@ -66,7 +66,7 @@ func TestMonitor_DoURL(t *testing.T) {
 	st.AddURL(url)
 
 	mnt.DoURL(*url)
-	req, _ := st.GetRequestsByUrl(url)
+	req, _ := st.GetRequestsByUrl(url.ID)
 	assert.Len(t, req, 1)
 	assert.Equal(t, req[0].Result, 400)
 

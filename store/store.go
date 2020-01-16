@@ -56,9 +56,9 @@ func (s *Store) GetURLById(id uint) (*model.URL, error) {
 
 // GetURLByUser retrieves urls for this user
 // returns error if nothing was found
-func (s *Store) GetURLsByUser(user *model.User) ([]model.URL, error) {
+func (s *Store) GetURLsByUser(userID uint) ([]model.URL, error) {
 	var urls []model.URL
-	if err := s.db.Model(user).Related(&urls).Error; err != nil {
+	if err := s.db.Model(&model.URL{}).Where("user_id == ?", userID).Find(&urls).Error; err != nil {
 		return nil, err
 	}
 	return urls, nil
@@ -71,7 +71,9 @@ func (s *Store) UpdateURL(url *model.URL) error {
 
 //DismissAlert sets "FailedTimes" value to 0 and updates it's record in database
 // https://github.com/jinzhu/gorm/issues/202#issuecomment-52582525
-func (s *Store) DismissAlert(url *model.URL) error {
+func (s *Store) DismissAlert(urlID uint) error {
+	url := &model.URL{}
+	url.ID = urlID
 	return s.db.Model(url).Update("failed_times", 0).Error
 }
 
@@ -87,18 +89,18 @@ func (s *Store) AddRequest(req *model.Request) error {
 }
 
 // GetRequestByUrl retrieves all requests for this url
-func (s *Store) GetRequestsByUrl(url *model.URL) ([]model.Request, error) {
+func (s *Store) GetRequestsByUrl(urlID uint) ([]model.Request, error) {
 	var requests []model.Request
-	if err := s.db.Model(url).Related(&requests).Error; err != nil {
+	if err := s.db.Model(&model.Request{UrlId: urlID}).Where("url_id == ?", urlID).Find(&requests).Error; err != nil {
 		return nil, err
 	}
 	return requests, nil
 }
 
 // GetUserRequestsInPeriod retrieves requests between 2 time intervals
-func (s *Store) GetUserRequestsInPeriod(user *model.User, from, to time.Time) ([]model.URL, error) {
+func (s *Store) GetUserRequestsInPeriod(userID uint, from, to time.Time) ([]model.URL, error) {
 	var urls []model.URL
-	if err := s.db.Model(user).Preload("Requests", "created_at >= ? and created_at <= ?", from, to).Related(&urls).Error; err != nil {
+	if err := s.db.Model(&model.URL{UserId: userID}).Preload("Requests", "created_at >= ? and created_at <= ?", from, to).Find(&urls).Error; err != nil {
 		return nil, err
 	}
 	return urls, nil

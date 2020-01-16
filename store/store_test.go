@@ -84,7 +84,7 @@ func TestUrls(t *testing.T) {
 	assert.Error(t, err)
 	// Updating URL
 
-	_, err = st.GetURLsByUser(usersList[0])
+	_, err = st.GetURLsByUser(usersList[0].ID)
 	assert.NoError(t, err)
 
 	err = st.IncrementFailed(u)
@@ -94,7 +94,7 @@ func TestUrls(t *testing.T) {
 	u, _ = st.GetURLById(1)
 	assert.Equal(t, 2, u.FailedTimes, "Increment failed_times didn't work")
 
-	err = st.DismissAlert(u)
+	err = st.DismissAlert(u.ID)
 	assert.NoError(t, err, "Error resetting failed times in database")
 
 	u, _ = st.GetURLById(1)
@@ -111,11 +111,11 @@ func TestRequests(t *testing.T) {
 		assert.NoError(t, err)
 	}
 	// test request retrieval
-	reqs, err := st.GetRequestsByUrl(urlsList[0])
+	reqs, err := st.GetRequestsByUrl(urlsList[0].ID)
 	assert.NoError(t, err, "Error retrieving requests from database")
 	assert.Equal(t, 3, len(reqs), "Mismatch between number of inserted and retrieved requests")
 
-	urlsByTime, err := st.GetUserRequestsInPeriod(usersList[0], time.Now().Add(-time.Minute*3), time.Now())
+	urlsByTime, err := st.GetUserRequestsInPeriod(usersList[0].ID, time.Now().Add(-time.Minute*3), time.Now())
 
-	assert.Equal(t, len(urlsByTime), 10, "error getting urls filtered by time")
+	assert.Equal(t, 10, len(urlsByTime), "error getting urls filtered by time")
 }
