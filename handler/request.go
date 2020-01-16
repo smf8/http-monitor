@@ -37,7 +37,7 @@ type urlCreateRequest struct {
 
 func (r *urlCreateRequest) bind(c echo.Context, url *model.URL) error {
 	if err := c.Bind(r); err != nil {
-		return err
+		return common.NewRequestError("error binding url create request, check json structure and try again", err, http.StatusBadRequest)
 	}
 	if _, err := govalidator.ValidateStruct(r); err != nil {
 		e := common.NewValidationError(err, "Error validating create url request")

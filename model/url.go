@@ -10,8 +10,8 @@ import (
 
 type URL struct {
 	gorm.Model
-	UserId      uint
-	Address     string
+	UserId      uint   `gorm:"unique_index:index_addr_user"` // for preventing url duplication for a single user
+	Address     string `gorm:"unique_index:index_addr_user"`
 	Threshold   int
 	FailedTimes int
 	Requests    []Request `gorm:"foreignkey:url_id"`
