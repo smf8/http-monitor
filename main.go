@@ -7,6 +7,7 @@ import (
 	"github.com/smf8/http-monitor/handler"
 	"github.com/smf8/http-monitor/monitor"
 	"github.com/smf8/http-monitor/store"
+	"log"
 	"time"
 )
 
@@ -16,8 +17,12 @@ func main() {
 	mnt := monitor.NewMonitor(st, nil, 10)
 	//mnt.Do()
 	sch, _ := monitor.NewScheduler(mnt)
-	sch.DoWithIntervals(time.Second * 10)
+	sch.DoWithIntervals(time.Minute * 5)
 
+	err := mnt.LoadFromDatabase()
+	if err != nil {
+		log.Println(err)
+	}
 	e := echo.New()
 	v1 := e.Group("/api")
 	h := handler.NewHandler(st, sch)

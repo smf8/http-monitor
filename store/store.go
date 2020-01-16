@@ -57,6 +57,14 @@ func (s *Store) AddURL(url *model.URL) error {
 	return s.db.Create(url).Error
 }
 
+func (s *Store) GetAllURLs() ([]model.URL, error) {
+	var urls []model.URL
+	if err := s.db.Model(&model.URL{}).Find(&urls).Error; err != nil {
+		return nil, err
+	}
+	return urls, nil
+}
+
 // GetURLById retrieves a URL from database based on it's ID
 // returns error if an URL was not fount
 func (s *Store) GetURLById(id uint) (*model.URL, error) {

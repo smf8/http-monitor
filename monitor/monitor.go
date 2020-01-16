@@ -33,6 +33,17 @@ func NewMonitor(store *store.Store, urls []model.URL, workerSize int) *Monitor {
 	return mnt
 }
 
+// LoadFromDatabase loads all urls from database into monitor to start working on them
+// this function will replace all of saved URLs with the ones from database
+func (mnt *Monitor) LoadFromDatabase() error {
+	urls, err := mnt.store.GetAllURLs()
+	if err != nil {
+		return err
+	}
+	mnt.URLs = urls
+	return nil
+}
+
 // RemoveURL removes a URL from current list of monitor's urls
 // returns error if the URL to be deleted was not found
 func (mnt *Monitor) RemoveURL(url model.URL) error {
