@@ -1,13 +1,11 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo/v4"
 	"github.com/smf8/http-monitor/common"
 	"github.com/smf8/http-monitor/model"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -50,7 +48,7 @@ func (r *urlCreateRequest) bind(c echo.Context, url *model.URL) error {
 }
 
 type alertDismissRequest struct {
-	Address string `json:"address" valid:"url"`
+	URLID uint `json:"url_id"`
 }
 
 func (r *alertDismissRequest) bind(c echo.Context, url *model.URL) error {
@@ -61,24 +59,23 @@ func (r *alertDismissRequest) bind(c echo.Context, url *model.URL) error {
 		e := common.NewValidationError(err, "Error validating alert dismiss request")
 		return e
 	}
-	url.Address = r.Address
+	url.ID = r.URLID
 	return nil
 }
 
 type urlStatusRequest struct {
-	Address  string    `json:"address" valid:"url"`
-	FromTime time.Time `valid:"optional, time~Provide time as unix timestamp" json:"from_time, omitempty"`
-	ToTime   time.Time `valid:"optional, time~Provide time as unix timestamp" json:"to_time, omitempty"`
+	FromTime int64 `valid:"optional, time~Provide time as unix timestamp before current time" json:"from_time, omitempty" query:"from_time"`
+	ToTime   int64 `valid:"optional, time~Provide time as unix timestamp before current time" json:"to_time, omitempty" query:"to_time"`
 }
 
-func (r *urlStatusRequest) bind(c echo.Context, url *model.URL) error {
+func (r *urlStatusRequest) parse(c echo.Context) error {
 	if err := c.Bind(r); err != nil {
-		return err
+		return common.NewRequestError("error parsing url status request, if you want to specify time, use unix timestamp", err, http.StatusBadRequest)
 	}
 	govalidator.CustomTypeTagMap.Set("time", govalidator.CustomTypeValidator(func(i interface{}, context interface{}) bool {
 		if _, ok := context.(urlStatusRequest); ok {
-			if t, ok := i.(time.Time); ok {
-				if govalidator.IsUnixTime(fmt.Sprintf("%d", t.Unix())) {
+			if t, ok := i.(int64); ok {
+				if time.Now().Unix() > t {
 					return true
 				}
 			}
@@ -86,11 +83,11 @@ func (r *urlStatusRequest) bind(c echo.Context, url *model.URL) error {
 		return false
 	}))
 	if _, err := govalidator.ValidateStruct(r); err != nil {
-		if !govalidator.IsUnixTime(strconv.Itoa(int(r.FromTime.Unix()))) || govalidator.IsUnixTime(strconv.Itoa(int(r.ToTime.Unix()))) {
-			e := common.NewValidationError(err, "error validating url status request")
-			return e
-		}
+		e := common.NewValidationError(err, "error validating url status request")
+		return e
 	}
-	url.Address = r.Address
+	if r.FromTime > r.ToTime && r.ToTime != 0 {
+		return common.NewRequestError("end of time interval must be later than it's start", nil, http.StatusBadRequest)
+	}
 	return nil
 }

@@ -23,18 +23,6 @@ func NewHandler(st *store.Store, sch *monitor.Scheduler) *Handler {
 	return &Handler{st: st, sch: sch}
 }
 
-// RegisterRoutes registers routes with their corresponding handler function
-// functions are defined in handler package
-func (h *Handler) RegisterRoutes(v *echo.Group) {
-	userGroup := v.Group("/users")
-	userGroup.POST("", h.SignUp)
-	userGroup.POST("/login", h.Login)
-
-	urlGroup := v.Group("/urls")
-	urlGroup.GET("", h.FetchURLs)
-	urlGroup.POST("", h.CreateURL)
-}
-
 func extractID(c echo.Context) uint {
 	e := c.Get("user").(*jwt.Token)
 	claims := e.Claims.(jwt.MapClaims)

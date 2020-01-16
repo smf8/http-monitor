@@ -61,19 +61,46 @@ func newURLListResponse(list []model.URL) *urlListResponse {
 }
 
 type requestResponse struct {
-	URL        string    `json:"url"`
-	ResultCode string    `json:"result_code"`
+	ResultCode int       `json:"result_code"`
 	CreatedAt  time.Time `json:"created_at"`
 }
 
+func newRequestResponse(req *model.Request) *requestResponse {
+	return &requestResponse{ResultCode: req.Result, CreatedAt: req.CreatedAt}
+}
+
 type requestListResponse struct {
-	Requests []*requestResponse `json:"requests"`
+	URL           string             `json:"url"`
+	RequestsCount int                `json:"requests_count"`
+	Requests      []*requestResponse `json:"requests"`
+}
+
+//TODO update request struct to have a field for url instance
+func newRequestListResponse(reqs []model.Request, url string) *requestListResponse {
+	resp := new(requestListResponse)
+	resp.Requests = make([]*requestResponse, len(reqs))
+	for i := range reqs {
+		resp.Requests[i] = newRequestResponse(&reqs[i])
+	}
+	resp.URL = url
+	resp.RequestsCount = len(reqs)
+	return resp
 }
 
 type alertResponse struct {
 	URL         string `json:"url"`
+	Threshold   int    `json:"threshold"`
 	FailedTimes int    `json:"failed_times"`
 }
+
+func newAlertResponse(url *model.URL) *alertResponse {
+	resp := new(alertResponse)
+	resp.URL = url.Address
+	resp.FailedTimes = url.FailedTimes
+	resp.Threshold = url.Threshold
+	return resp
+}
+
 type alertListResponse struct {
 	Alarms []*alertResponse `json:"alarms"`
 }
